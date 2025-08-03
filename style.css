@@ -1,0 +1,81 @@
+/* --- Base Body Styles --- */
+body {
+    font-family: 'Satoshi', sans-serif;
+    background-color: #f0f2f5;
+    /* Allow vertical scrolling */
+    overflow-x: hidden;
+}
+
+.dark body {
+    background-color: #0d1117;
+}
+
+/* --- Decorative Background --- */
+.background-blur {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    background: radial-gradient(circle at 10% 20%, rgb(163, 175, 243) 0%, rgb(220, 182, 232) 100.2%);
+    filter: blur(100px);
+    opacity: 0.5;
+    transition: background 0.5s ease;
+}
+
+.dark .background-blur {
+    background: radial-gradient(circle at 10% 20%, rgb(34, 48, 117) 0%, rgb(89, 43, 100) 100.2%);
+    opacity: 0.6;
+}
+
+/* --- Glassmorphism Card Style --- */
+.glass-card {
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.dark .glass-card {
+    background: rgba(45, 55, 72, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.glass-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* --- Interactive Mouse-follow Glow Effect --- */
+.glass-card::before {
+    content: '';
+    position: absolute;
+    /* CSS variables will be set by JavaScript */
+    top: var(--y);
+    left: var(--x);
+    transform: translate(-50%, -50%);
+    width: 0px;
+    height: 0px;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0) 70%);
+    border-radius: 50%;
+    transition: width 0.4s ease-out, height 0.4s ease-out;
+    pointer-events: none; /* Allows clicks to pass through */
+}
+
+.dark .glass-card::before {
+    background: radial-gradient(circle, rgba(52, 211, 153, 0.15) 0%, rgba(52, 211, 153, 0) 70%);
+}
+
+.glass-card:hover::before {
+    width: 300px;
+    height: 300px;
+}
+
+/* --- Utility Classes --- */
+.hidden {
+    display: none;
+}
