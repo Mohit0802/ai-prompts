@@ -4,78 +4,110 @@ document.addEventListener('DOMContentLoaded', function() {
     const themeIconLight = document.getElementById('theme-icon-light');
     const themeIconDark = document.getElementById('theme-icon-dark');
     const htmlEl = document.documentElement;
+    
+    const searchForm = document.getElementById('search-form');
+    const searchInput = document.getElementById('search-input');
+
     const allPromptCards = document.querySelectorAll('#prompt-cards-grid .glass-card');
     const displayArea = document.getElementById('prompt-display-area');
     const placeholderArea = document.getElementById('placeholder-area');
     const promptTextContainer = document.getElementById('prompt-text-container');
+    
+    // Input containers and fields
+    const inputsContainer = document.getElementById('inputs-container');
     const subjectInputContainer = document.getElementById('subject-input-container');
     const subjectInput = document.getElementById('subject-input');
+    const languageInputContainer = document.getElementById('language-input-container');
+    const languageInput = document.getElementById('language-input');
+
     const copyButton = document.getElementById('copy-button');
     const copyFeedback = document.getElementById('copy-feedback');
 
-    // --- Prompt Data ---
+    // --- Dynamic Prompt Generation ---
     const prompts = {
         roadmap: {
-            text: `You are a coding tutor for Mohit. Mohit is currently trying to learn Python. He has no prior programming experience.\n\nSo, guide him on his journey and give him a roadmap with a realistic timeframe. Begin with the basics and gradually progress to advanced concepts.\n\nKeep recommending external resources that Mohit can Google search or visit anytime.`
+            generate: () => {
+                const intros = [
+                    "You are a friendly and encouraging coding tutor for Mohit, a complete beginner.",
+                    "Act as an expert Python instructor creating a personalized learning plan for Mohit, who has no prior programming experience.",
+                    "Imagine you are Mohit's personal AI mentor. Your goal is to create a clear and realistic Python learning roadmap for an absolute beginner."
+                ];
+                const outros = [
+                    "Make sure the plan is broken down into weekly goals.",
+                    "Include suggestions for small, fun projects at each stage to keep him motivated.",
+                    "Recommend key external resources (like websites, books, or YouTube channels) that are great for beginners."
+                ];
+                return `${intros[Math.floor(Math.random() * intros.length)]}\n\nCreate a comprehensive roadmap that starts with the absolute basics and progressively moves to more advanced topics. ${outros[Math.floor(Math.random() * outros.length)]}`;
+            }
         },
         deepdive: {
-            text: `Tell me everything about Lists in Python that I can learn and practice in 1 hour.\n\nGive me exercises that I can solve and challenge me with tricky questions and push my limits.`
+            generate: () => `I want to do a 1-hour deep-dive session on Python lists.\n\nBreak down the topic into a 60-minute learning plan. Cover everything from the basics (creation, indexing, slicing) to more advanced concepts (list comprehensions, methods like .sort(), .append(), .pop()).\n\nProvide practical exercises and challenge me with tricky questions to solidify my understanding.`,
+            needsInput: false
         },
         'pareto-py': {
-            text: `You are an expert teacher who simplifies complex concepts.\n\nTeach me about Python <Subject> using the Pareto Principle, focusing on the 20% of key ideas, concepts or methods that will help me understand and achieve 80% of the results.\n\nProvide practical examples, step-by-step guidance, and actionable tips to apply this knowledge effectively.`,
+            generate: () => `You are an expert teacher who simplifies complex concepts.\n\nTeach me about Python <Subject> using the Pareto Principle. Focus on the 20% of the topic that will give me 80% of the practical results.\n\nProvide clear explanations, practical code examples, and actionable tips.`,
             needsInput: true,
-            placeholder: 'Lists'
+            placeholder: 'Functions'
         },
         'pareto-js': {
-            text: `You are an expert teacher in JavaScript.\n\nTeach me about JavaScript <Subject> using the Pareto Principle.\n\nFocus on the 20% of core concepts and techniques that will help me understand and achieve 80% of the results in real-world projects.\n\nProvide examples, explain key methods, and suggest practical ways to practice and apply this knowledge.`,
+            generate: () => `You are an expert JavaScript teacher.\n\nI want to learn about JavaScript <Subject> using the 80/20 rule. What are the core 20% of concepts and methods that I need to know to be effective in real-world projects?\n\nExplain with practical examples and suggest how to apply this knowledge.`,
             needsInput: true,
             placeholder: 'Promises'
         },
         debug: {
-            text: `Here is my Python code. It has a bug. Please analyze the code, identify the bug, and suggest a fix.\n\nIf possible, explain the issue in simple terms for me to understand.\n\n[PASTE YOUR CODE HERE]`
+            generate: () => `Act as an expert Python debugger.\n\nHere is a piece of my code. It's not working as expected. Please analyze it, identify the bug, explain the root cause in simple terms, and provide the corrected code.`
         },
         optimize: {
-            text: `This is my function. Can you optimize it for better performance?\n\nSuggest any improvements in readability, efficiency, or code structure.\n\n[PASTE YOUR CODE HERE]`
+            generate: () => `Please act as a senior software developer and review my code for optimization.\n\nAnalyze the following function and suggest improvements for performance, readability, and efficiency. Explain the "why" behind your suggestions.`
         },
         solve: {
-            text: `Give me a step-by-step solution to this problem statement and then challenge me with a harder version of the problem.\n\n[PASTE YOUR PROBLEM STATEMENT HERE]`
+            generate: () => `I have a coding problem I need to solve.\n\nFirst, provide a clear, step-by-step explanation of one possible solution. Then, challenge me with a slightly harder version of the same problem to test my understanding.`
         },
         explain: {
-            text: `Explain the concept of <Subject> in simple terms. Then show me a real world example where this is used.`,
+            generate: () => `Explain the concept of <Subject> in <Language> as if I were a complete beginner.\n\nUse a real-world analogy to help me understand the core idea. Then, show me a simple code example in <Language> that demonstrates how it works in practice.`,
             needsInput: true,
-            placeholder: 'Recursion'
+            placeholder: 'Recursion',
+            needsLanguage: true, // Flag to show the language input
+            languagePlaceholder: 'Python'
         },
         project: {
-            text: `Help me brainstorm project ideas in <Subject>.\n\nSuggest features and tools to implement these ideas.`,
+            generate: () => `I want to build a project related to <Subject>.\n\nHelp me brainstorm 3-5 project ideas, ranging from simple to complex. For each idea, suggest a few key features and the technologies or libraries I might need to build it.`,
             needsInput: true,
-            placeholder: 'AI for Driving cars'
+            placeholder: 'Data Visualization'
         }
     };
 
     let currentPromptKey = null;
 
     // --- Functions ---
+    
+    function generateSearchPrompt(topic) {
+        const templates = [
+            `I need to learn about "${topic}". Explain it to me like I'm 15 years old. Cover the key ideas, provide a simple example, and give me a real-world analogy.`,
+            `Create a mini-tutorial on "${topic}". Start with a simple definition, show a practical code example, and then explain a common use case for it.`,
+            `You are my personal tutor. Teach me the fundamentals of "${topic}". What are the most important things I need to know to get started?`
+        ];
+        return templates[Math.floor(Math.random() * templates.length)];
+    }
 
-    /**
-     * Updates the text in the prompt display area based on the current selection and user input.
-     */
     function updatePromptText() {
         if (!currentPromptKey) return;
 
         const promptData = prompts[currentPromptKey];
-        let text = promptData.text;
+        let text = promptData.generate();
 
         if (promptData.needsInput) {
             const subject = subjectInput.value.trim() || promptData.placeholder;
             text = text.replace(/<Subject>/g, subject);
         }
+        
+        if (promptData.needsLanguage) {
+            const language = languageInput.value.trim() || promptData.languagePlaceholder;
+            text = text.replace(/<Language>/g, language);
+        }
         promptTextContainer.textContent = text;
     }
     
-    /**
-     * Displays the selected prompt and configures the input field if needed.
-     * @param {string} key - The key for the selected prompt in the `prompts` object.
-     */
     function displayPrompt(key) {
         currentPromptKey = key;
         const promptData = prompts[key];
@@ -83,9 +115,14 @@ document.addEventListener('DOMContentLoaded', function() {
         placeholderArea.classList.add('hidden');
         displayArea.classList.remove('hidden');
 
-        // Scroll to the prompt display area for better visibility
-        displayArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        // Show the main inputs container if any input is needed
+        if (promptData.needsInput || promptData.needsLanguage) {
+            inputsContainer.classList.remove('hidden');
+        } else {
+            inputsContainer.classList.add('hidden');
+        }
 
+        // Handle subject/topic input
         if (promptData.needsInput) {
             subjectInputContainer.classList.remove('hidden');
             subjectInput.value = '';
@@ -95,41 +132,58 @@ document.addEventListener('DOMContentLoaded', function() {
             subjectInputContainer.classList.add('hidden');
         }
         
+        // Handle language input specifically
+        if (promptData.needsLanguage) {
+            languageInputContainer.classList.remove('hidden');
+            languageInput.value = '';
+            languageInput.placeholder = `e.g., ${promptData.languagePlaceholder}`;
+        } else {
+            languageInputContainer.classList.add('hidden');
+        }
+        
         updatePromptText();
+        displayArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
-    /**
-     * Toggles the display of theme icons based on the current mode.
-     * @param {boolean} isDark - True if dark mode is active, false otherwise.
-     */
+    function displayCustomPrompt(text) {
+        currentPromptKey = null;
+        placeholderArea.classList.add('hidden');
+        displayArea.classList.remove('hidden');
+        inputsContainer.classList.add('hidden'); // Hide all inputs for search
+
+        promptTextContainer.textContent = text;
+        displayArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
     function updateThemeIcons(isDark) {
         themeIconLight.classList.toggle('hidden', isDark);
         themeIconDark.classList.toggle('hidden', !isDark);
     }
 
-    /**
-     * Sets the initial theme based on localStorage or system preference.
-     */
     function setInitialTheme() {
         const isDark = localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
-        if (isDark) {
-            htmlEl.classList.add('dark');
-        } else {
-            htmlEl.classList.remove('dark');
-        }
+        htmlEl.classList.toggle('dark', isDark);
         updateThemeIcons(isDark);
     }
 
     // --- Event Listeners ---
 
-    // Theme toggling
     themeToggle.addEventListener('click', () => {
         const isDark = htmlEl.classList.toggle('dark');
         localStorage.theme = isDark ? 'dark' : 'light';
         updateThemeIcons(isDark);
     });
 
-    // Mouse-follow glow effect for all glass cards
+    searchForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const query = searchInput.value.trim();
+        if (query) {
+            const promptText = generateSearchPrompt(query);
+            displayCustomPrompt(promptText);
+            searchInput.value = '';
+        }
+    });
+
     document.querySelectorAll('.glass-card').forEach(card => {
         card.addEventListener('mousemove', e => {
             const rect = card.getBoundingClientRect();
@@ -140,55 +194,27 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Clicks on each prompt card
     allPromptCards.forEach(card => {
         card.addEventListener('click', () => {
-            // Extract key from ID like "prompt-card-roadmap" -> "roadmap"
             const key = card.id.replace('prompt-card-', '');
             displayPrompt(key);
         });
     });
 
-    // Update prompt text on input
+    // Add event listener for the new language input
     subjectInput.addEventListener('input', updatePromptText);
+    languageInput.addEventListener('input', updatePromptText);
 
-    // Copy to clipboard
     copyButton.addEventListener('click', () => {
         const textToCopy = promptTextContainer.textContent;
-        
         navigator.clipboard.writeText(textToCopy).then(() => {
-            // Success
             copyFeedback.classList.remove('hidden');
             copyButton.textContent = 'Copied!';
-
             setTimeout(() => {
                 copyFeedback.classList.add('hidden');
                 copyButton.textContent = 'Copy';
             }, 2000);
-        }).catch(err => {
-            // Fallback for older browsers
-            console.error('Failed to copy with navigator.clipboard:', err);
-            const tempTextArea = document.createElement('textarea');
-            tempTextArea.value = textToCopy;
-            document.body.appendChild(tempTextArea);
-            tempTextArea.select();
-            try {
-                document.execCommand('copy');
-                copyFeedback.classList.remove('hidden');
-                copyButton.textContent = 'Copied!';
-                setTimeout(() => {
-                    copyFeedback.classList.add('hidden');
-                    copyButton.textContent = 'Copy';
-                }, 2000);
-            } catch (execErr) {
-                console.error('Fallback copy failed:', execErr);
-                copyButton.textContent = 'Error';
-                 setTimeout(() => {
-                    copyButton.textContent = 'Copy';
-                }, 2000);
-            }
-            document.body.removeChild(tempTextArea);
-        });
+        }).catch(err => console.error('Failed to copy text: ', err));
     });
 
     // --- Initial Setup ---
