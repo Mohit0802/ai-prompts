@@ -1,240 +1,340 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI-Powered Learning Hub</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+          darkMode: 'class',
+          theme: {
+            extend: {
+              colors: {
+                'light-text-primary': '#111827',
+                'dark-text-primary': '#f9fafb',
+                'dark-text-secondary': '#d1d5db',
+                'accent': '#34d399',
+                'accent-dark': '#10b981',
+              }
+            }
+          }
+        }
+    </script>
+    <link rel="preconnect" href="https://api.fontshare.com" crossorigin>
+    <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=satoshi@700,500,400&display=swap">
     <style>
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Satoshi', sans-serif;
+            background-color: #f0f2f5;
+            overflow: hidden;
         }
-        .prompt-card {
-            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        .dark body {
+            background-color: #0d1117;
         }
-        .prompt-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        .background-blur {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: radial-gradient(circle at 10% 20%, rgb(163, 175, 243) 0%, rgb(220, 182, 232) 100.2%);
+            filter: blur(100px);
+            opacity: 0.5;
+        }
+        .dark .background-blur {
+            background: radial-gradient(circle at 10% 20%, rgb(34, 48, 117) 0%, rgb(89, 43, 100) 100.2%);
+            opacity: 0.6;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .dark .glass-card {
+            background: rgba(45, 55, 72, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: var(--y);
+            left: var(--x);
+            transform: translate(-50%, -50%);
+            width: 0px;
+            height: 0px;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0) 70%);
+            border-radius: 50%;
+            transition: width 0.4s ease-out, height 0.4s ease-out;
+            pointer-events: none;
+        }
+        .dark .glass-card::before {
+             background: radial-gradient(circle, rgba(52, 211, 153, 0.15) 0%, rgba(52, 211, 153, 0) 70%);
+        }
+        .glass-card:hover::before {
+            width: 300px;
+            height: 300px;
         }
     </style>
 </head>
-<body class="bg-stone-50 text-stone-800">
-    <!-- Chosen Palette: Warm Taupe -->
-    <!-- Application Structure Plan: The application is designed as an interactive "Learning Hub" or "Prompt Generator". Instead of a static list, it uses a task-oriented, card-based layout. Users select a learning goal (e.g., "Python Full Roadmap"), which then reveals the specific, formatted AI prompt in a dedicated display area. For prompts requiring customization (like the Pareto principle prompts), an input field appears, allowing the user to dynamically insert a topic. This structure was chosen to transform passive content into an active tool, guiding the user from selecting a goal to generating a ready-to-use, customized prompt. This improves usability by focusing attention on one prompt at a time and simplifying the process of using the prompts. -->
-    <!-- Visualization & Content Choices: 
-        - Report Info: Four AI learning prompts for Python and JavaScript.
-        - Goal: To create an interactive tool for users to easily select, customize, and copy these learning prompts.
-        - Viz/Presentation Method: Interactive cards (HTML/CSS/Tailwind) are used for prompt selection. A styled `pre` block is used to display the selected prompt text for clarity and easy reading. A text input field is dynamically shown for prompts that require user-defined subjects.
-        - Interaction: Users click on cards to reveal prompts. An input field allows real-time customization of the prompt text. A "Copy" button provides one-click functionality to transfer the prompt to the clipboard.
-        - Justification: This interactive design is more engaging and functional than a static text document. It makes the prompts more accessible and easier to use, which is the primary goal for the end-user (Mohit).
-        - Library/Method: Vanilla JavaScript for all DOM manipulation and event handling. Tailwind CSS for styling.
-    -->
-    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
-
-    <div class="container mx-auto px-4 py-8 md:py-12">
-        <header class="text-center mb-10">
-            <h1 class="text-4xl md:text-5xl font-bold text-teal-700">AI-Powered Learning Hub</h1>
-            <p class="mt-3 text-lg text-stone-600 max-w-2xl mx-auto">Select a learning goal to generate a tailored prompt. Copy it and paste it into your favorite AI tool to begin your lesson.</p>
+<body class="text-light-text-primary dark:text-dark-text-primary transition-colors duration-300">
+    <div class="background-blur"></div>
+    
+    <div class="container mx-auto px-4 py-8 md:py-12 relative z-10 h-screen overflow-y-auto">
+        <header class="text-center mb-12 md:mb-16 relative">
+            <h1 class="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-pink-500 dark:from-accent-dark dark:to-teal-400">AI-Powered Learning Hub</h1>
+            <p class="mt-4 text-lg text-gray-600 dark:text-dark-text-secondary max-w-3xl mx-auto">Select a learning goal to generate a tailored prompt. Copy it and paste it into your favorite AI tool to begin your lesson.</p>
+            <button id="theme-toggle" class="absolute top-0 right-0 p-2 rounded-full text-gray-500 dark:text-dark-text-secondary hover:bg-black/5 dark:hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent dark:focus:ring-offset-dark-bg">
+                <span id="theme-icon-light" class="text-2xl">☀️</span>
+                <span id="theme-icon-dark" class="text-2xl" style="display: none;">🌙</span>
+            </button>
         </header>
 
         <main class="max-w-7xl mx-auto">
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
-                <div id="prompt-card-roadmap" class="prompt-card cursor-pointer bg-white p-6 rounded-lg border border-stone-200 text-center">
-                    <div class="text-4xl mb-3">🗺️</div>
-                    <h2 class="text-xl font-semibold text-stone-800">Python Roadmap</h2>
-                    <p class="text-stone-500 mt-1">Generate a full learning plan for a beginner.</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+                <!-- Prompt Cards -->
+                <div id="prompt-card-roadmap" class="glass-card cursor-pointer p-6 rounded-2xl text-center">
+                    <div class="text-5xl mb-4">🗺️</div>
+                    <h2 class="text-xl font-semibold text-light-text-primary dark:text-dark-text-primary">Python Roadmap</h2>
+                    <p class="text-gray-600 dark:text-dark-text-secondary mt-2">Generate a full learning plan for a beginner.</p>
                 </div>
-                <div id="prompt-card-deepdive" class="prompt-card cursor-pointer bg-white p-6 rounded-lg border border-stone-200 text-center">
-                    <div class="text-4xl mb-3">🔬</div>
-                    <h2 class="text-xl font-semibold text-stone-800">Python Deep Dive</h2>
-                    <p class="text-stone-500 mt-1">Practice a single topic for one hour.</p>
+                <div id="prompt-card-deepdive" class="glass-card cursor-pointer p-6 rounded-2xl text-center">
+                    <div class="text-5xl mb-4">🔬</div>
+                    <h2 class="text-xl font-semibold text-light-text-primary dark:text-dark-text-primary">Python Deep Dive</h2>
+                    <p class="text-gray-600 dark:text-dark-text-secondary mt-2">Practice a single topic for one hour.</p>
                 </div>
-                <div id="prompt-card-pareto-py" class="prompt-card cursor-pointer bg-white p-6 rounded-lg border border-stone-200 text-center">
-                    <div class="text-4xl mb-3">🐍</div>
-                    <h2 class="text-xl font-semibold text-stone-800">Efficient Python</h2>
-                    <p class="text-stone-500 mt-1">Learn any topic with the 80/20 principle.</p>
+                <div id="prompt-card-pareto-py" class="glass-card cursor-pointer p-6 rounded-2xl text-center">
+                    <div class="text-5xl mb-4">🐍</div>
+                    <h2 class="text-xl font-semibold text-light-text-primary dark:text-dark-text-primary">Efficient Python</h2>
+                    <p class="text-gray-600 dark:text-dark-text-secondary mt-2">Learn any topic with the 80/20 principle.</p>
                 </div>
-                <div id="prompt-card-pareto-js" class="prompt-card cursor-pointer bg-white p-6 rounded-lg border border-stone-200 text-center">
-                    <div class="text-4xl mb-3">⚡</div>
-                    <h2 class="text-xl font-semibold text-stone-800">Efficient JavaScript</h2>
-                    <p class="text-stone-500 mt-1">Learn any topic with the 80/20 principle.</p>
+                <div id="prompt-card-pareto-js" class="glass-card cursor-pointer p-6 rounded-2xl text-center">
+                    <div class="text-5xl mb-4">⚡</div>
+                    <h2 class="text-xl font-semibold text-light-text-primary dark:text-dark-text-primary">Efficient JavaScript</h2>
+                    <p class="text-gray-600 dark:text-dark-text-secondary mt-2">Learn any topic with the 80/20 principle.</p>
                 </div>
-                <div id="prompt-card-debug" class="prompt-card cursor-pointer bg-white p-6 rounded-lg border border-stone-200 text-center">
-                    <div class="text-4xl mb-3">🐛</div>
-                    <h2 class="text-xl font-semibold text-stone-800">Debug Code</h2>
-                    <p class="text-stone-500 mt-1">Find and fix bugs in your Python code.</p>
+                <div id="prompt-card-debug" class="glass-card cursor-pointer p-6 rounded-2xl text-center">
+                    <div class="text-5xl mb-4">🐛</div>
+                    <h2 class="text-xl font-semibold text-light-text-primary dark:text-dark-text-primary">Debug Code</h2>
+                    <p class="text-gray-600 dark:text-dark-text-secondary mt-2">Find and fix bugs in your Python code.</p>
                 </div>
-                <div id="prompt-card-optimize" class="prompt-card cursor-pointer bg-white p-6 rounded-lg border border-stone-200 text-center">
-                    <div class="text-4xl mb-3">🚀</div>
-                    <h2 class="text-xl font-semibold text-stone-800">Optimize Code</h2>
-                    <p class="text-stone-500 mt-1">Improve performance and readability.</p>
+                <div id="prompt-card-optimize" class="glass-card cursor-pointer p-6 rounded-2xl text-center">
+                    <div class="text-5xl mb-4">🚀</div>
+                    <h2 class="text-xl font-semibold text-light-text-primary dark:text-dark-text-primary">Optimize Code</h2>
+                    <p class="text-gray-600 dark:text-dark-text-secondary mt-2">Improve performance and readability.</p>
                 </div>
-                <div id="prompt-card-solve" class="prompt-card cursor-pointer bg-white p-6 rounded-lg border border-stone-200 text-center">
-                    <div class="text-4xl mb-3">🧩</div>
-                    <h2 class="text-xl font-semibold text-stone-800">Problem Solving</h2>
-                    <p class="text-stone-500 mt-1">Get step-by-step solutions and challenges.</p>
+                <div id="prompt-card-solve" class="glass-card cursor-pointer p-6 rounded-2xl text-center">
+                    <div class="text-5xl mb-4">🧩</div>
+                    <h2 class="text-xl font-semibold text-light-text-primary dark:text-dark-text-primary">Problem Solving</h2>
+                    <p class="text-gray-600 dark:text-dark-text-secondary mt-2">Get step-by-step solutions and challenges.</p>
                 </div>
-                <div id="prompt-card-explain" class="prompt-card cursor-pointer bg-white p-6 rounded-lg border border-stone-200 text-center">
-                    <div class="text-4xl mb-3">💡</div>
-                    <h2 class="text-xl font-semibold text-stone-800">Concept Explanation</h2>
-                    <p class="text-stone-500 mt-1">Understand concepts with real-world examples.</p>
+                <div id="prompt-card-explain" class="glass-card cursor-pointer p-6 rounded-2xl text-center">
+                    <div class="text-5xl mb-4">💡</div>
+                    <h2 class="text-xl font-semibold text-light-text-primary dark:text-dark-text-primary">Concept Explanation</h2>
+                    <p class="text-gray-600 dark:text-dark-text-secondary mt-2">Understand concepts with real-world examples.</p>
                 </div>
-                <div id="prompt-card-project" class="prompt-card cursor-pointer bg-white p-6 rounded-lg border border-stone-200 text-center">
-                    <div class="text-4xl mb-3">🏗️</div>
-                    <h2 class="text-xl font-semibold text-stone-800">Project Brainstorm</h2>
-                    <p class="text-stone-500 mt-1">Get project ideas, features, and tools.</p>
+                <div id="prompt-card-project" class="glass-card cursor-pointer p-6 rounded-2xl text-center">
+                    <div class="text-5xl mb-4">🏗️</div>
+                    <h2 class="text-xl font-semibold text-light-text-primary dark:text-dark-text-primary">Project Brainstorm</h2>
+                    <p class="text-gray-600 dark:text-dark-text-secondary mt-2">Get project ideas, features, and tools.</p>
                 </div>
             </div>
 
-            <div id="prompt-display-area" class="bg-white p-6 md:p-8 rounded-lg border border-stone-200 shadow-inner" style="display: none;">
-                <div id="subject-input-container" class="mb-4" style="display: none;">
-                    <label for="subject-input" class="block text-md font-medium text-stone-700 mb-2">Enter Topic:</label>
-                    <input type="text" id="subject-input" class="w-full px-4 py-2 border border-stone-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-teal-500" placeholder="e.g., Lists, Functions, Promises">
+            <div id="prompt-display-area" class="glass-card p-6 md:p-8 rounded-2xl" style="display: none;">
+                <div id="subject-input-container" class="mb-6" style="display: none;">
+                    <label for="subject-input" class="block text-md font-medium text-gray-600 dark:text-dark-text-secondary mb-2">Enter Topic:</label>
+                    <input type="text" id="subject-input" class="w-full px-4 py-2 bg-white/50 dark:bg-black/20 border border-white/30 dark:border-white/10 text-light-text-primary dark:text-dark-text-primary rounded-lg focus:ring-2 focus:ring-accent focus:border-accent" placeholder="e.g., Lists, Functions, Promises">
                 </div>
                 <div class="relative">
-                    <pre id="prompt-text-container" class="bg-stone-100 text-stone-700 p-4 pr-20 rounded-md whitespace-pre-wrap text-left font-mono text-sm leading-relaxed"></pre>
-                    <button id="copy-button" class="absolute top-4 right-4 bg-teal-600 text-white px-3 py-1 rounded-md text-sm font-medium hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500">
+                    <pre id="prompt-text-container" class="bg-black/5 dark:bg-black/20 text-light-text-primary dark:text-dark-text-secondary p-5 pr-24 rounded-lg whitespace-pre-wrap text-left font-mono text-base leading-relaxed"></pre>
+                    <button id="copy-button" class="absolute top-4 right-4 bg-accent text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-accent-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent dark:focus:ring-offset-dark-surface transition-colors">
                         Copy
                     </button>
                 </div>
-                 <p id="copy-feedback" class="text-center text-green-600 mt-4 font-medium" style="display: none;">Copied to clipboard!</p>
+                 <p id="copy-feedback" class="text-center text-green-500 mt-4 font-medium" style="display: none;">Copied to clipboard!</p>
             </div>
-             <div id="placeholder-area" class="text-center py-12">
-                <p class="text-stone-500 text-lg">Please select a card above to view the prompt.</p>
+             <div id="placeholder-area" class="text-center py-16">
+                <p class="text-gray-500 dark:text-dark-text-secondary text-lg">Please select a card above to view the prompt.</p>
             </div>
         </main>
     </div>
 
     <script>
-        const prompts = {
-            roadmap: {
-                title: 'Python Learning Roadmap for Mohit',
-                text: `You are a coding tutor for Mohit. Mohit is currently trying to learn Python. He has no prior programming experience.\n\nSo, guide him on his journey and give him a roadmap with a realistic timeframe. Begin with the basics and gradually progress to advanced concepts.\n\nKeep recommending external resources that Mohit can Google search or visit anytime.`
-            },
-            deepdive: {
-                title: '1-Hour Python List Practice Prompt',
-                text: `Tell me everything about Lists in Python that I can learn and practice in 1 hour.\n\nGive me exercises that I can solve and challenge me with tricky questions and push my limits.`
-            },
-            pareto_py: {
-                title: 'Python Learning via Pareto Principle',
-                text: `You are an expert teacher who simplifies complex concepts.\n\nTeach me about Python <Subject> using the Pareto Principle, focusing on the 20% of key ideas, concepts or methods that will help me understand and achieve 80% of the results.\n\nProvide practical examples, step-by-step guidance, and actionable tips to apply this knowledge effectively.`,
-                needsInput: true,
-                placeholder: 'Lists'
-            },
-            pareto_js: {
-                title: 'JavaScript Learning via Pareto Principle',
-                text: `You are an expert teacher in JavaScript.\n\nTeach me about JavaScript using the Pareto Principle.\n\nFocus on the 20% of core concepts and techniques that will help me understand and achieve 80% of the results in real-world projects.\n\nProvide examples, explain key methods, and suggest practical ways to practice and apply this knowledge.`,
-                needsInput: false
-            },
-            debug: {
-                title: 'Debugging Prompt',
-                text: `Here is my Python code. It has a bug. Please analyze the code, identify the bug, and suggest a fix.\n\nIf possible, explain the issue in simple terms for me to understand.`
-            },
-            optimize: {
-                title: 'Optimization Prompt',
-                text: `This is my function. Can you optimize it for better performance?\n\nSuggest any improvements in readability, efficiency, or code structure.`
-            },
-            solve: {
-                title: 'Problem Solving Prompt',
-                text: `Give me a step-by-step solution to this problem statement and then challenge me with a harder version of the problem.`
-            },
-            explain: {
-                title: 'Concept Explanation Prompt',
-                text: `Explain this algorithm or data structure in simple terms. Then show me a real world example where this is used.`
-            },
-            project: {
-                title: 'Project Building Prompt',
-                text: `Help me brainstorm project ideas in <Subject>.\n\nSuggest features and tools to implement these ideas.`,
-                needsInput: true,
-                placeholder: 'AI for Driving cars'
-            }
-        };
+        document.addEventListener('DOMContentLoaded', function() {
+            const prompts = {
+                roadmap: {
+                    title: 'Python Learning Roadmap for Mohit',
+                    text: `You are a coding tutor for Mohit. Mohit is currently trying to learn Python. He has no prior programming experience.\n\nSo, guide him on his journey and give him a roadmap with a realistic timeframe. Begin with the basics and gradually progress to advanced concepts.\n\nKeep recommending external resources that Mohit can Google search or visit anytime.`
+                },
+                deepdive: {
+                    title: '1-Hour Python List Practice Prompt',
+                    text: `Tell me everything about Lists in Python that I can learn and practice in 1 hour.\n\nGive me exercises that I can solve and challenge me with tricky questions and push my limits.`
+                },
+                pareto_py: {
+                    title: 'Python Learning via Pareto Principle',
+                    text: `You are an expert teacher who simplifies complex concepts.\n\nTeach me about Python <Subject> using the Pareto Principle, focusing on the 20% of key ideas, concepts or methods that will help me understand and achieve 80% of the results.\n\nProvide practical examples, step-by-step guidance, and actionable tips to apply this knowledge effectively.`,
+                    needsInput: true,
+                    placeholder: 'Lists'
+                },
+                pareto_js: {
+                    title: 'JavaScript Learning via Pareto Principle',
+                    text: `You are an expert teacher in JavaScript.\n\nTeach me about JavaScript using the Pareto Principle.\n\nFocus on the 20% of core concepts and techniques that will help me understand and achieve 80% of the results in real-world projects.\n\nProvide examples, explain key methods, and suggest practical ways to practice and apply this knowledge.`,
+                    needsInput: false
+                },
+                debug: {
+                    title: 'Debugging Prompt',
+                    text: `Here is my Python code. It has a bug. Please analyze the code, identify the bug, and suggest a fix.\n\nIf possible, explain the issue in simple terms for me to understand.`
+                },
+                optimize: {
+                    title: 'Optimization Prompt',
+                    text: `This is my function. Can you optimize it for better performance?\n\nSuggest any improvements in readability, efficiency, or code structure.`
+                },
+                solve: {
+                    title: 'Problem Solving Prompt',
+                    text: `Give me a step-by-step solution to this problem statement and then challenge me with a harder version of the problem.`
+                },
+                explain: {
+                    title: 'Concept Explanation Prompt',
+                    text: `Explain this algorithm or data structure in simple terms. Then show me a real world example where this is used.`
+                },
+                project: {
+                    title: 'Project Building Prompt',
+                    text: `Help me brainstorm project ideas in <Subject>.\n\nSuggest features and tools to implement these ideas.`,
+                    needsInput: true,
+                    placeholder: 'AI for Driving cars'
+                }
+            };
 
-        const cardRoadmap = document.getElementById('prompt-card-roadmap');
-        const cardDeepDive = document.getElementById('prompt-card-deepdive');
-        const cardParetoPy = document.getElementById('prompt-card-pareto-py');
-        const cardParetoJs = document.getElementById('prompt-card-pareto-js');
-        const cardDebug = document.getElementById('prompt-card-debug');
-        const cardOptimize = document.getElementById('prompt-card-optimize');
-        const cardSolve = document.getElementById('prompt-card-solve');
-        const cardExplain = document.getElementById('prompt-card-explain');
-        const cardProject = document.getElementById('prompt-card-project');
+            const cardRoadmap = document.getElementById('prompt-card-roadmap');
+            const cardDeepDive = document.getElementById('prompt-card-deepdive');
+            const cardParetoPy = document.getElementById('prompt-card-pareto-py');
+            const cardParetoJs = document.getElementById('prompt-card-pareto-js');
+            const cardDebug = document.getElementById('prompt-card-debug');
+            const cardOptimize = document.getElementById('prompt-card-optimize');
+            const cardSolve = document.getElementById('prompt-card-solve');
+            const cardExplain = document.getElementById('prompt-card-explain');
+            const cardProject = document.getElementById('prompt-card-project');
 
-        const displayArea = document.getElementById('prompt-display-area');
-        const placeholderArea = document.getElementById('placeholder-area');
-        const promptTextContainer = document.getElementById('prompt-text-container');
-        const subjectInputContainer = document.getElementById('subject-input-container');
-        const subjectInput = document.getElementById('subject-input');
-        const copyButton = document.getElementById('copy-button');
-        const copyFeedback = document.getElementById('copy-feedback');
-
-        let currentPromptKey = null;
-
-        function updatePromptText() {
-            if (!currentPromptKey) return;
-
-            const promptData = prompts[currentPromptKey];
-            let text = promptData.text;
-
-            if (promptData.needsInput) {
-                const subject = subjectInput.value || promptData.placeholder;
-                text = text.replace('<Subject>', subject);
-            }
-            promptTextContainer.textContent = text;
-        }
-        
-        function displayPrompt(key) {
-            currentPromptKey = key;
-            const promptData = prompts[key];
+            const displayArea = document.getElementById('prompt-display-area');
+            const placeholderArea = document.getElementById('placeholder-area');
+            const promptTextContainer = document.getElementById('prompt-text-container');
+            const subjectInputContainer = document.getElementById('subject-input-container');
+            const subjectInput = document.getElementById('subject-input');
+            const copyButton = document.getElementById('copy-button');
+            const copyFeedback = document.getElementById('copy-feedback');
             
-            placeholderArea.style.display = 'none';
-            displayArea.style.display = 'block';
+            const themeToggle = document.getElementById('theme-toggle');
+            const themeIconLight = document.getElementById('theme-icon-light');
+            const themeIconDark = document.getElementById('theme-icon-dark');
+            const htmlEl = document.documentElement;
 
-            if (promptData.needsInput) {
-                subjectInputContainer.style.display = 'block';
-                subjectInput.value = '';
-                subjectInput.placeholder = `e.g., ${promptData.placeholder}`;
-            } else {
-                subjectInputContainer.style.display = 'none';
+            let currentPromptKey = null;
+
+            function updatePromptText() {
+                if (!currentPromptKey) return;
+
+                const promptData = prompts[currentPromptKey];
+                let text = promptData.text;
+
+                if (promptData.needsInput) {
+                    const subject = subjectInput.value || promptData.placeholder;
+                    text = text.replace('<Subject>', subject);
+                }
+                promptTextContainer.textContent = text;
             }
             
-            updatePromptText();
-        }
+            function displayPrompt(key) {
+                currentPromptKey = key;
+                const promptData = prompts[key];
+                
+                placeholderArea.style.display = 'none';
+                displayArea.style.display = 'block';
 
-        cardRoadmap.addEventListener('click', () => displayPrompt('roadmap'));
-        cardDeepDive.addEventListener('click', () => displayPrompt('deepdive'));
-        cardParetoPy.addEventListener('click', () => displayPrompt('pareto_py'));
-        cardParetoJs.addEventListener('click', () => displayPrompt('pareto_js'));
-        cardDebug.addEventListener('click', () => displayPrompt('debug'));
-        cardOptimize.addEventListener('click', () => displayPrompt('optimize'));
-        cardSolve.addEventListener('click', () => displayPrompt('solve'));
-        cardExplain.addEventListener('click', () => displayPrompt('explain'));
-        cardProject.addEventListener('click', () => displayPrompt('project'));
+                if (promptData.needsInput) {
+                    subjectInputContainer.style.display = 'block';
+                    subjectInput.value = '';
+                    subjectInput.placeholder = `e.g., ${promptData.placeholder}`;
+                } else {
+                    subjectInputContainer.style.display = 'none';
+                }
+                
+                updatePromptText();
+            }
 
-        subjectInput.addEventListener('input', updatePromptText);
+            function updateThemeIcons(isDark) {
+                if (isDark) {
+                    themeIconLight.style.display = 'none';
+                    themeIconDark.style.display = 'inline';
+                } else {
+                    themeIconLight.style.display = 'inline';
+                    themeIconDark.style.display = 'none';
+                }
+            }
 
-        copyButton.addEventListener('click', () => {
-            const textToCopy = promptTextContainer.textContent;
-            
-            const tempTextArea = document.createElement('textarea');
-            tempTextArea.value = textToCopy;
-            document.body.appendChild(tempTextArea);
-            tempTextArea.select();
-            document.execCommand('copy');
-            document.body.removeChild(tempTextArea);
+            function setInitialTheme() {
+                const isDark = localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                if (isDark) {
+                    htmlEl.classList.add('dark');
+                } else {
+                    htmlEl.classList.remove('dark');
+                }
+                updateThemeIcons(isDark);
+            }
 
-            copyFeedback.style.display = 'block';
-            copyButton.textContent = 'Copied!';
+            themeToggle.addEventListener('click', () => {
+                const isDark = htmlEl.classList.toggle('dark');
+                localStorage.theme = isDark ? 'dark' : 'light';
+                updateThemeIcons(isDark);
+            });
 
-            setTimeout(() => {
-                copyFeedback.style.display = 'none';
-                copyButton.textContent = 'Copy';
-            }, 2000);
+            document.querySelectorAll('.glass-card').forEach(card => {
+                card.addEventListener('mousemove', e => {
+                    const rect = card.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    card.style.setProperty('--x', `${x}px`);
+                    card.style.setProperty('--y', `${y}px`);
+                });
+            });
+
+            cardRoadmap.addEventListener('click', () => displayPrompt('roadmap'));
+            cardDeepDive.addEventListener('click', () => displayPrompt('deepdive'));
+            cardParetoPy.addEventListener('click', () => displayPrompt('pareto_py'));
+            cardParetoJs.addEventListener('click', () => displayPrompt('pareto_js'));
+            cardDebug.addEventListener('click', () => displayPrompt('debug'));
+            cardOptimize.addEventListener('click', () => displayPrompt('optimize'));
+            cardSolve.addEventListener('click', () => displayPrompt('solve'));
+            cardExplain.addEventListener('click', () => displayPrompt('explain'));
+            cardProject.addEventListener('click', () => displayPrompt('project'));
+
+            subjectInput.addEventListener('input', updatePromptText);
+
+            copyButton.addEventListener('click', () => {
+                const textToCopy = promptTextContainer.textContent;
+                
+                const tempTextArea = document.createElement('textarea');
+                tempTextArea.value = textToCopy;
+                document.body.appendChild(tempTextArea);
+                tempTextArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(tempTextArea);
+
+                copyFeedback.style.display = 'block';
+                copyButton.textContent = 'Copied!';
+
+                setTimeout(() => {
+                    copyFeedback.style.display = 'none';
+                    copyButton.textContent = 'Copy';
+                }, 2000);
+            });
+
+            setInitialTheme();
         });
-
     </script>
 </body>
 </html>
